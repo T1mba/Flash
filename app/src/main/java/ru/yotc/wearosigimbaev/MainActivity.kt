@@ -12,75 +12,90 @@ import org.json.JSONObject
 import java.lang.Exception
 
 class MainActivity : WearableActivity() {
-        var counter: Int = 0
-        var ready = false
+
     private lateinit var app: myApp
+    var counter = 0
+    var ready = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
         app = applicationContext as myApp
 
-        val onLoginResponce: (login: String, password: String) -> Unit = { login, password ->
-            app.username = login
-            val json = JSONObject()
-            json.put("username", login)
-            json.put("password", password)
 
-            HTTP.requestPOST(
-                "http://s4a.kolei.ru/login",
-                json,
-                mapOf(
-                    "ContentType" to "application/json"
-                )
-            ) { result, error ->
-                if (result != null) {
-                    try {
-                        val jsonResp = JSONObject(result)
-                        if (!jsonResp.has("notice"))
-                            throw Exception("Не верный формат, ожидался объект notice")
-                        if (jsonResp.getJSONObject("notice").has("answer"))
-                            throw Exception(jsonResp.getJSONObject("notice").getString("answer"))
-                        if (jsonResp.getJSONObject("notice").has("token")) {
-                            app.token = jsonResp.getJSONObject("notice").getString("token")
-                            runOnUiThread {
-                                Toast.makeText(
-                                    this,
-                                    "Success get token:$app.token",
-                                    Toast.LENGTH_LONG
-                                )
-                                    .show()
-                            }
-                        } else
-                            throw Exception("Не верный формат ожидался объект token")
 
-                    } catch (e: Exception) {
+        val splash = findViewById<ImageView>(R.id.splash)
+        object : CountDownTimer(5000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                counter++
+                if (counter > 3 && ready) {
+                    splash.elevation = 0F
+                    this.cancel()
+                }
+
+            }
+
+            override fun onFinish() {
+                splash.elevation = 0F
+            }
+        }.start()
+        onLoginResponce(app.loginText, app.passwordText)
+        startActivity(Intent(this, ChatActivity::class.java))
+
+    }
+    fun onLoginResponce (login: String, password: String)
+    {
+        app.username = login
+        val json = JSONObject()
+        json.put("username", login)
+        json.put("password", password)
+
+        HTTP.requestPOST(
+            "http://s4a.kolei.ru/login",
+            json,
+            mapOf(
+                "ContentType" to "application/json"
+            )
+        ) { result, error ->
+            if (result != null) {
+                try {
+                    val jsonResp = JSONObject(result)
+                    if (!jsonResp.has("notice"))
+                        throw Exception("Не верный формат, ожидался объект notice")
+                    if (jsonResp.getJSONObject("notice").has("answer"))
+                        throw Exception(jsonResp.getJSONObject("notice").getString("answer"))
+                    if (jsonResp.getJSONObject("notice").has("token")) {
+                        app.token = jsonResp.getJSONObject("notice").getString("token")
                         runOnUiThread {
-                            AlertDialog.Builder(this)
-                                .setTitle("Ошибка")
-                                .setMessage(e.message)
-                                .setPositiveButton("OK", null)
-                                .create()
+                            Toast.makeText(
+                                this,
+                                "Success get token:$app.token",
+                                Toast.LENGTH_LONG
+                            )
                                 .show()
                         }
-                    }
-                } else
+                    } else
+                        throw Exception("Не верный формат ожидался объект token")
+
+                } catch (e: Exception) {
                     runOnUiThread {
                         AlertDialog.Builder(this)
-                            .setTitle("Ошибка http-запроса")
-                            .setMessage(error)
-                            .setPositiveButton("OK",null)
+                            .setTitle("Ошибка")
+                            .setMessage(e.message)
+                            .setPositiveButton("OK", null)
                             .create()
                             .show()
                     }
+                }
+            } else
+                runOnUiThread {
+                    AlertDialog.Builder(this)
+                        .setTitle("Ошибка http-запроса")
+                        .setMessage(error)
+                        .setPositiveButton("OK", null)
+                        .create()
+                        .show()
+                }
 
-            }
         }
-
     }
-
-    fun OpenRegis(view: View) {
-        startActivityForResult(Intent(this, registr::class.java),1)
-    }
-    fun OpenChat(view: View) {}
 
 }

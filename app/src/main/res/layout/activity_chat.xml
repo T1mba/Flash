@@ -4,19 +4,37 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/dark_grey"
     android:padding="@dimen/box_inset_layout_padding"
     tools:context=".ChatActivity"
     tools:deviceIds="wear">
 
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <androidx.wear.widget.WearableRecyclerView
+            android:id="@+id/wrc"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+             />
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-            <androidx.wear.widget.WearableRecyclerView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:id="@+id/chatinfo"/>
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <EditText
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Ваше сообщение:"
+                android:id="@+id/message"/>
+            <Button
+                android:layout_width="40dp"
+                android:layout_height="wrap_content"
+                android:text="->"
+                android:onClick="enterMessage"/>
         </LinearLayout>
+    </LinearLayout>
 </androidx.wear.widget.BoxInsetLayout>
